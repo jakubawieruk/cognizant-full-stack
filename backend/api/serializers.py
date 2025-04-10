@@ -40,11 +40,11 @@ class TimeSlotSerializer(serializers.ModelSerializer):
         read_only_fields = ['booked_by']
 
     def get_booked_by_user(self, obj):
-        """ Check if the slot is booked by the current request's user. """
-        user = self.context['request'].user
-        if user.is_authenticated:
-            return obj.booked_by == user
-        return False 
+      """ Check if the slot is booked by the current request's user. """
+      request = self.context.get('request')
+      if request and hasattr(request, 'user') and request.user.is_authenticated:
+        return obj.booked_by == request.user
+      return False 
 
 class BookingActionSerializer(serializers.Serializer):
     # No fields needed, action determined by endpoint/method
