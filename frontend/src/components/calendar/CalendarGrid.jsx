@@ -19,13 +19,13 @@ const CalendarGrid = ({ events, defaultDate, onBook, onUnsubscribe }) => {
     if (event.isBooked) className += ' rbc-event-booked';
     if (event.bookedByUser) className += ' rbc-event-booked-user';
     const style = {
-        border: '1px solid #b3b3b3',
-        // Background will be handled by the event component or specific CSS overrides
-        backgroundColor: event.isBooked ? (event.bookedByUser ? '#ffe0b2' : '#e0e0e0') : '#e3f2fd',
-        borderRadius: '4px',
-        opacity: 0.9,
-        color: '#000',
-        boxShadow: 'none',
+      border: '1px solid #b3b3b3',
+      // Background will be handled by the event component or specific CSS overrides
+      backgroundColor: event.isBooked ? (event.bookedByUser ? '#ffe0b2' : '#e0e0e0') : '#e3f2fd',
+      borderRadius: '4px',
+      opacity: 0.9,
+      color: '#000',
+      boxShadow: 'none',
     };
     return {
         className: className,

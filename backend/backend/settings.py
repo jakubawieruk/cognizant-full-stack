@@ -37,16 +37,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     # Third-party apps
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
-    'api.apps.ApiConfig',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     'dj_rest_auth',
+    'dj_rest_auth.registration',
 
-    # Booking app
-    
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -102,12 +106,15 @@ DATABASES = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication', # Optional
     ],
-    # Make sure DEFAULT_PERMISSION_CLASSES allows authenticated users
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]
+}
+
+REST_AUTH = {
+    'LOGIN_SERIALIZER': 'dj_rest_auth.serializers.LoginSerializer',
+    'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
 }
 
 # Password validation
@@ -127,6 +134,25 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+# django-allauth, configuration
+ACCOUNT_LOGIN_METHODS = {'username'}
+ACCOUNT_EMAIL_REQUREIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none' # 'mandatory' or 'optional' for production
+
+ACCOUNT_SIGNUP_FIELDS = ['username*']
+
+SITE_ID = 1
+
+# For development, print emails to console instead of sending:
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
 
 
 # Internationalization
@@ -150,3 +176,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+

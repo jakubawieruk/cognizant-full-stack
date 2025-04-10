@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router';
 import { CssBaseline, Container } from '@mui/material';
 
 // Import views
 import LoginView from './views/LoginView';
+import RegisterView from './views/RegisterView';
 
 import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute'
@@ -10,11 +11,12 @@ import ProtectedRoute from './components/ProtectedRoute'
 function App() {
   return (
     <Router>
-      <CssBaseline />  {/* Apply MUI's CSS reset globally */}
+      <CssBaseline />  {/* MUI's CSS global reset */}
       <Container maxWidth="xl" sx={{ mt: 2 }}>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginView />} />
+          <Route path="/register" element={<RegisterView />} />
 
           {/* Protected Routes */}
           <Route

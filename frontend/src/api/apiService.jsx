@@ -27,6 +27,7 @@ apiClient.interceptors.request.use(
 // --- Authentication ---
 export const loginUser = (credentials) => apiClient.post('/auth/login/', credentials); // {username, password}
 export const logoutUser = () => apiClient.post('/auth/logout/');
+export const registerUser = (userData) => apiClient.post('/auth/registration/', userData); // {username, password}
 
 // --- User Preferences ---
 export const fetchUserProfile = () => apiClient.get('/user/preferences/');

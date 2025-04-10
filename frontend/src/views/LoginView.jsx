@@ -107,9 +107,18 @@ function LoginView() {
           fullWidth
           variant="contained"
           sx={{ mt: 3, mb: 2 }}
-          disabled={loading} // Disable button while loading
+          disabled={loading}
         >
           {loading ? <CircularProgress size={24} /> : 'Sign In'}
+        </Button>
+        <Button
+          fullWidth
+          variant="outlined"
+          sx={{ mt: 1, mb: 2 }}
+          onClick={() => navigate('/register')}
+          disabled={loading}
+        >
+          {loading ? <CircularProgress size={24} /> : 'Sign Up'}
         </Button>
       </Box>
       </Box>

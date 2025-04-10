@@ -7,13 +7,11 @@ from datetime import datetime, timedelta
 from .models import Category, TimeSlot, UserProfile
 from .serializers import CategorySerializer, TimeSlotSerializer, UserProfileSerializer, BookingActionSerializer
 
-# ViewSet for Categories (Read Only for regular users)
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
   queryset = Category.objects.all()
   serializer_class = CategorySerializer
   permission_classes = [permissions.IsAuthenticated]
 
-# View for User Preferences
 class UserPreferencesView(generics.RetrieveUpdateAPIView):
   serializer_class = UserProfileSerializer
   permission_classes = [permissions.IsAuthenticated]
@@ -23,23 +21,14 @@ class UserPreferencesView(generics.RetrieveUpdateAPIView):
     profile, created = UserProfile.objects.get_or_create(user=self.request.user)
     return profile
 
-# ViewSet for TimeSlots
 class TimeSlotViewSet(viewsets.ReadOnlyModelViewSet):
   serializer_class = TimeSlotSerializer
   permission_classes = [permissions.IsAuthenticated]
 
   def get_queryset(self):
-    # --- DETAILED DEBUGGING ---
-    print("-" * 20)
-    print(f"[DEBUG] Request Method: {self.request.method}")
-    print(f"[DEBUG] Raw Request GET dict: {self.request.GET}") # Shows parsed GET params as dict
-    print(f"[DEBUG] Raw request query string: {self.request.META.get('QUERY_STRING')}") # The raw query string
-    category_ids_str_get = self.request.GET.getlist('category_id') # Keep checking both
-    category_ids_str_get_brackets = self.request.GET.getlist('category_id[]') # Keep checking both
-    print(f"[DEBUG] Attempting getlist('category_id'): {self.request.GET.getlist('category_id')}")
-    print(f"[DEBUG] Attempting getlist('category_id[]'): {self.request.GET.getlist('category_id[]')}") # Check if key has brackets
-    print("-" * 20)
-    # --- END DETAILED DEBUGGING ---
+    category_ids_str_get = self.request.GET.getlist('category_id') 
+    category_ids_str_get_brackets = self.request.GET.getlist('category_id[]') 
+    
     # --- Filtering Logic ---
     queryset = TimeSlot.objects.select_related('category', 'booked_by').all()
 
@@ -112,8 +101,9 @@ class TimeSlotViewSet(viewsets.ReadOnlyModelViewSet):
 
     timeslot.booked_by = request.user
     timeslot.save()
-    serializer = self.get_serializer(timeslot)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+
+    output_serializer = TimeSlotSerializer(timeslot, context={'request': request})
+    return Response(output_serializer.data, status=status.HTTP_200_OK)
 
   # --- Unbooking Action ---
   @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated], serializer_class=BookingActionSerializer)
@@ -128,5 +118,6 @@ class TimeSlotViewSet(viewsets.ReadOnlyModelViewSet):
 
       timeslot.booked_by = None
       timeslot.save()
-      serializer = self.get_serializer(timeslot)
-      return Response(serializer.data, status=status.HTTP_200_OK)
+
+      output_serializer = TimeSlotSerializer(timeslot, context={'request': request})
+      return Response(output_serializer.data, status=status.HTTP_200_OK)

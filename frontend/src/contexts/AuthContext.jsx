@@ -1,6 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import { loginUser as apiLogin, logoutUser as apiLogout, fetchUserProfile } from '../api/apiService';
-import apiClient from '../api/apiService';
+import apiClient, { loginUser as apiLogin, logoutUser as apiLogout, fetchUserProfile } from '../api/apiService';
 
 const AuthContext = createContext(null);
 
@@ -9,7 +8,7 @@ export const AuthProvider = ({ children }) => {
 
   // Initialize token from sessionStorage FIRST
   const [token, setToken] = useState(() => sessionStorage.getItem('authToken'));
-  const [isLoading, setIsLoading] = useState(true); // Start loading
+  const [isLoading, setIsLoading] = useState(true);
 
   // Centralized function to fetch profile and set user
   const loadUserProfile = async () => {
@@ -82,6 +81,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]); // Re-run ONLY when token changes
 
   const login = async (credentials) => {
+    console.log("AuthContext: Attempting login with credentials:", credentials);
     try {
       const response = await apiLogin(credentials);
       const newToken = response.data.key;
@@ -110,7 +110,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       // Always clear frontend state
       sessionStorage.removeItem('authToken');
-      setToken(null); // This will trigger useEffect to clear user and set loading false
+      setToken(null);
       console.log("Frontend state cleared on logout.");
     }
   };
@@ -127,6 +127,7 @@ export const AuthProvider = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

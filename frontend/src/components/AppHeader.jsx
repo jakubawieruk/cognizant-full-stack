@@ -1,13 +1,11 @@
 import React from 'react';
-// import { useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { useAuth } from '../contexts/AuthContext'; // Import useAuth hook
+import { useAuth } from '../contexts/AuthContext';
 
 import logoImage from '../assets/logo.png';
 
 function AppHeader() {
   const { user, logout } = useAuth();
-//   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {

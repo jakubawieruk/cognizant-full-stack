@@ -10,4 +10,5 @@ urlpatterns = [
   path('', include(router.urls)),
   path('user/preferences/', views.UserPreferencesView.as_view(), name='user-preferences'),
   path('auth/', include('dj_rest_auth.urls')),
+  path('auth/registration/', include('dj_rest_auth.registration.urls')),
 ]
