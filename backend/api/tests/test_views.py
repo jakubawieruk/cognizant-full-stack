@@ -9,32 +9,6 @@ import zoneinfo
 
 User = get_user_model()
 
-@pytest.fixture
-def api_client():
-    """ Fixture for DRF APIClient """
-    return APIClient()
-
-@pytest.fixture
-def test_user_with_profile(db):
-    """ Fixture for user with profile created (relies on signals or get_or_create) """
-    user = User.objects.create_user(username='testuser', password='password')
-    # Ensure profile exists, assuming get_or_create or signal works
-    profile, _ = UserProfile.objects.get_or_create(user=user)
-    return user
-
-@pytest.fixture
-def test_category(db):
-    return Category.objects.create(name='API Test Cat')
-
-@pytest.fixture
-def test_timeslot(db, test_category):
-    now = datetime.now(tz=zoneinfo.ZoneInfo("UTC"))
-    return TimeSlot.objects.create(
-        category=test_category,
-        start_time=now + timedelta(days=1, hours=1),
-        end_time=now + timedelta(days=1, hours=2)
-    )
-
 @pytest.mark.django_db
 def test_get_timeslots_unauthenticated(api_client):
     """ Verify unauthenticated users cannot access timeslots. """
@@ -225,23 +199,90 @@ def test_book_timeslot_in_past(api_client, test_user_with_profile, test_category
     assert past_slot.booked_by is None # Should not have been booked
 
 # Test for booking conflict (ensure the relevant check is uncommented in views.py)
-# @pytest.mark.django_db
-# def test_book_timeslot_conflict(api_client, test_user_with_profile, test_category, test_timeslot):
-#     """ Test booking fails if user already has a conflicting booking. """
-#     # Pre-book the user for a conflicting slot
-#     now = timezone.now()
-#     conflicting_slot = TimeSlot.objects.create(
-#         category=test_category,
-#         start_time=test_timeslot.start_time - timedelta(minutes=30), # Overlaps test_timeslot
-#         end_time=test_timeslot.start_time + timedelta(minutes=30),
-#         booked_by=test_user_with_profile
-#     )
-#
-#     api_client.force_authenticate(user=test_user_with_profile)
-#     url = reverse('timeslot-book', kwargs={'pk': test_timeslot.pk}) # Try to book original slot
-#     response = api_client.post(url)
-#
-#     assert response.status_code == 400
-#     assert 'conflicting' in response.data.get('detail', '').lower()
-#     test_timeslot.refresh_from_db()
-#     assert test_timeslot.booked_by is None
+@pytest.mark.django_db
+def test_book_timeslot_conflict(api_client, test_user_with_profile, test_category, test_timeslot):
+    """ Test booking fails if user already has a conflicting booking. """
+    # Pre-book the user for a conflicting slot
+    now = timezone.now()
+    conflicting_slot = TimeSlot.objects.create(
+        category=test_category,
+        start_time=test_timeslot.start_time - timedelta(minutes=30), # Overlaps test_timeslot
+        end_time=test_timeslot.start_time + timedelta(minutes=30),
+        booked_by=test_user_with_profile
+    )
+
+    api_client.force_authenticate(user=test_user_with_profile)
+    url = reverse('timeslot-book', kwargs={'pk': test_timeslot.pk}) # Try to book original slot
+    response = api_client.post(url)
+
+    assert response.status_code == 400
+    assert 'conflicting' in response.data.get('detail', '').lower()
+    test_timeslot.refresh_from_db()
+    assert test_timeslot.booked_by is None
+    
+@pytest.mark.django_db
+def test_unbook_timeslot_success(api_client, test_user_with_profile, booked_by_test_user_timeslot):
+    """ Test successfully unbooking a slot booked by the user. """
+    slot = booked_by_test_user_timeslot # Slot booked by test_user
+    assert slot.booked_by == test_user_with_profile # Pre-condition
+
+    api_client.force_authenticate(user=test_user_with_profile)
+    url = reverse('timeslot-unbook', kwargs={'pk': slot.pk}) # Use the correct action name
+    response = api_client.post(url)
+
+    assert response.status_code == 200
+    slot.refresh_from_db()
+    assert slot.booked_by is None # Should be unbooked
+    assert response.data['is_booked'] is False
+    assert response.data['booked_by'] is None
+
+@pytest.mark.django_db
+def test_unbook_timeslot_not_booked_by_user(api_client, test_user_with_profile, booked_by_other_user_timeslot):
+    """ Test unbooking fails if slot is booked by another user. """
+    slot = booked_by_other_user_timeslot # Slot booked by other_user
+    original_booker = slot.booked_by
+
+    api_client.force_authenticate(user=test_user_with_profile) # Authenticated as test_user
+    url = reverse('timeslot-unbook', kwargs={'pk': slot.pk})
+    response = api_client.post(url)
+
+    assert response.status_code == 403 # Forbidden
+    assert 'did not book this slot' in response.data.get('detail', '').lower()
+    slot.refresh_from_db()
+    assert slot.booked_by == original_booker # Booking should remain
+
+@pytest.mark.django_db
+def test_unbook_timeslot_not_booked_at_all(api_client, test_user_with_profile, available_timeslot):
+    """ Test unbooking fails if slot isn't booked by anyone. """
+    slot = available_timeslot
+    assert slot.booked_by is None # Pre-condition
+
+    api_client.force_authenticate(user=test_user_with_profile)
+    url = reverse('timeslot-unbook', kwargs={'pk': slot.pk})
+    response = api_client.post(url)
+
+    # Expect 403 because the first check is ownership (booked_by != request.user)
+    assert response.status_code == 403
+    assert 'did not book this slot' in response.data.get('detail', '').lower()
+    slot.refresh_from_db()
+    assert slot.booked_by is None
+
+@pytest.mark.django_db
+def test_unbook_timeslot_in_past(api_client, test_user_with_profile, test_category):
+    """ Test unbooking fails if the slot start time is in the past. """
+    now = timezone.now()
+    past_booked_slot = TimeSlot.objects.create(
+        category=test_category,
+        start_time=now - timedelta(hours=2), # Start time is in the past
+        end_time=now - timedelta(hours=1),
+        booked_by=test_user_with_profile # Booked by the user trying to unbook
+    )
+
+    api_client.force_authenticate(user=test_user_with_profile)
+    url = reverse('timeslot-unbook', kwargs={'pk': past_booked_slot.pk})
+    response = api_client.post(url)
+
+    assert response.status_code == 400
+    assert 'cannot unbook a slot in the past' in response.data.get('detail', '').lower()
+    past_booked_slot.refresh_from_db()
+    assert past_booked_slot.booked_by == test_user_with_profile # Should still be booked

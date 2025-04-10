@@ -87,7 +87,6 @@ Implement a full-stack web application that allows authenticated users to view a
 4.  **Install Python Dependencies:**
     ```bash
     pip install -r requirements.txt
-    # Or if no requirements.txt: pip install Django djangorestframework dj-rest-auth django-allauth djangocorsheaders pytest pytest-django pytest-cov psycopg2-binary (or other DB driver if not using SQLite)
     ```
 5.  **Apply Migrations:**
    

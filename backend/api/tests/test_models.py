@@ -6,15 +6,6 @@ import zoneinfo
 
 User = get_user_model()
 
-# Use pytest fixtures for reusable setup (optional but good)
-@pytest.fixture
-def test_user(db): # db fixture enables database access
-    return User.objects.create_user(username='testuser', password='password')
-
-@pytest.fixture
-def test_category(db):
-    return Category.objects.create(name='Test Cat')
-
 # Mark tests that need DB access
 @pytest.mark.django_db
 def test_timeslot_is_booked(test_user, test_category):
@@ -39,7 +30,7 @@ def test_timeslot_is_booked(test_user, test_category):
 @pytest.mark.django_db
 def test_category_str(test_category):
     """ Test the __str__ method of the Category model. """
-    assert str(test_category) == 'Test Cat'
+    assert str(test_category) == 'Shared Test Cat'
 
 @pytest.mark.django_db
 def test_user_profile_creation(test_user):
@@ -68,7 +59,7 @@ def test_timeslot_str_available(test_category):
         start_time=now_dt,
         end_time=now_dt + timedelta(hours=1)
     )
-    expected_str = f"Test Cat Slot: {now_str} - Available"
+    expected_str = f"Shared Test Cat Slot: {now_str} - Available"
     assert str(slot) == expected_str
 
 @pytest.mark.django_db
@@ -82,7 +73,7 @@ def test_timeslot_str_booked(test_user, test_category):
         end_time=now_dt + timedelta(hours=1),
         booked_by=test_user
     )
-    expected_str = f"Test Cat Slot: {now_str} - Booked by testuser"
+    expected_str = f"Shared Test Cat Slot: {now_str} - Booked by testuser"
     assert str(slot) == expected_str
 
 # Add tests for UserProfile interested_categories relationship if desired

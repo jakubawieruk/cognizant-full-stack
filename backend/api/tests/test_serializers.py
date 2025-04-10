@@ -1,63 +1,9 @@
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIRequestFactory # To create mock request objects
-from api.models import TimeSlot, Category, UserProfile
 from api.serializers import TimeSlotSerializer # Import the serializer
-from datetime import datetime, timedelta
-import zoneinfo
 
 User = get_user_model()
-
-# --- Fixtures ---
-@pytest.fixture
-def test_user(db):
-    return User.objects.create_user(username='testuser', password='password')
-
-@pytest.fixture
-def other_user(db):
-    return User.objects.create_user(username='otheruser', password='password')
-
-@pytest.fixture
-def test_category(db):
-    return Category.objects.create(name='Serializer Test Cat')
-
-@pytest.fixture
-def available_timeslot(db, test_category):
-    now = datetime.now(tz=zoneinfo.ZoneInfo("UTC"))
-    return TimeSlot.objects.create(
-        category=test_category,
-        start_time=now + timedelta(hours=1),
-        end_time=now + timedelta(hours=2),
-        booked_by=None
-    )
-
-@pytest.fixture
-def booked_by_test_user_timeslot(db, test_category, test_user):
-    now = datetime.now(tz=zoneinfo.ZoneInfo("UTC"))
-    return TimeSlot.objects.create(
-        category=test_category,
-        start_time=now + timedelta(hours=3),
-        end_time=now + timedelta(hours=4),
-        booked_by=test_user
-    )
-
-@pytest.fixture
-def booked_by_other_user_timeslot(db, test_category, other_user):
-    now = datetime.now(tz=zoneinfo.ZoneInfo("UTC"))
-    return TimeSlot.objects.create(
-        category=test_category,
-        start_time=now + timedelta(hours=5),
-        end_time=now + timedelta(hours=6),
-        booked_by=other_user
-    )
-
-# --- Request Factory Fixture ---
-@pytest.fixture
-def factory():
-    """ Fixture for APIRequestFactory """
-    return APIRequestFactory()
-
-# --- Tests ---
 
 @pytest.mark.django_db
 def test_timeslot_serializer_fields(available_timeslot, test_user):
@@ -94,11 +40,11 @@ def test_timeslot_serializer_is_booked(available_timeslot, booked_by_test_user_t
 
 @pytest.mark.django_db
 def test_timeslot_serializer_booked_by_user_authenticated(
-    factory, test_user, available_timeslot, booked_by_test_user_timeslot, booked_by_other_user_timeslot
+    factory, test_user_with_profile, available_timeslot, booked_by_test_user_timeslot, booked_by_other_user_timeslot
 ):
     """ Test 'booked_by_user' when the request user IS authenticated. """
     request = factory.get('/fake-url/')
-    request.user = test_user # The authenticated user for this test run
+    request.user = test_user_with_profile # The authenticated user for this test run
 
     context = {'request': request}
 
