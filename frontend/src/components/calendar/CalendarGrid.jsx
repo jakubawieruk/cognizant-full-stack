@@ -10,9 +10,15 @@ import CalendarEvent from './CalendarEvent';
 
 // --- Localizer Setup ---
 const locales = { 'en-US': enUS };
-const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
+const localizer = dateFnsLocalizer({ 
+  format,
+  parse,
+  startOfWeek: (date) => startOfWeek(date, { weekStartsOn: 1 }), // Monday
+  getDay,
+  locales 
+});
 
-const CalendarGrid = ({ events, defaultDate, onBook, onUnsubscribe }) => {
+const CalendarGrid = ({ events, date, onNavigate, onBook, onUnsubscribe }) => {
 
   const eventStyleGetter = useCallback((event) => {
     let className = 'rbc-event';
@@ -59,10 +65,10 @@ const CalendarGrid = ({ events, defaultDate, onBook, onUnsubscribe }) => {
           style={{ height: '100%' }}
           views={[Views.WEEK]}
           defaultView={Views.WEEK}
-          defaultDate={defaultDate}
+          date={date}
           components={components}
           // Prevent internal navigation handling as parent's toolbar does it
-          onNavigate={() => {}}
+          onNavigate={onNavigate}
           // Click/Select is handled inside CalendarEvent now
           eventPropGetter={eventStyleGetter}
           culture='en-US'

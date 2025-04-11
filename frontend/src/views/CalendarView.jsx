@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import format from 'date-fns/format';
 import startOfWeek from 'date-fns/startOfWeek';
 import addWeeks from 'date-fns/addWeeks';
+import addDays from 'date-fns/addDays';
 
 import { Box, CircularProgress, Alert, Card, CardContent } from '@mui/material';
 
@@ -84,10 +85,13 @@ function CalendarView({ categoryFilterIds, categoryFilterKey}) {
   // --- Handlers ---
   const handleNavigate = useCallback((action) => {
     setViewedWeekStart(current => {
+      const oldDateStr = format(current, 'yyyy-MM-dd');
+      let newDate = current;
       if (action === 'PREV') return addWeeks(current, -1);
-      if (action === 'NEXT') return addWeeks(current, 1);
-      if (action instanceof Date) return startOfWeek(action, { weekStartsOn });
-      return current;
+      else if (action === 'NEXT') return addWeeks(current, 1);
+      else if (action instanceof Date) newDate = startOfWeek(action, { weekStartsOn: 1 });
+      console.log(`handleNavigate: Old date=${oldDateStr}, New date=${format(newDate, 'yyyy-MM-dd')}`); // Log change
+      return newDate;
     });
   }, []);
 
@@ -143,10 +147,21 @@ function CalendarView({ categoryFilterIds, categoryFilterKey}) {
   }, [selectedSlot, actionInProgress, viewedWeekStart, categoryFilterIds, loadEvents]);
 
   // --- Memoized Values ---
-  const defaultDate = useMemo(() => new Date(), []);
-  const weekEnd = useMemo(() => addWeeks(viewedWeekStart, 1), [viewedWeekStart]);
-  const toolbarLabel = useMemo(() => `${format(viewedWeekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`, [viewedWeekStart, weekEnd]);
+  // const defaultDate = useMemo(() => new Date(), []);
+  // const weekEnd = useMemo(() => addWeeks(viewedWeekStart, 1), [viewedWeekStart]);
+  // const toolbarLabel = useMemo(() => `${format(viewedWeekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`, [viewedWeekStart, weekEnd]);
 
+  const actualWeekEnd = useMemo(() => addDays(viewedWeekStart, 6), [viewedWeekStart]);
+  const toolbarLabel = useMemo(() => {
+    // Format nicely, e.g., "Apr 7 – 13, 2025" or "Apr 28 – May 4, 2025"
+    const startMonth = format(viewedWeekStart, 'MMM');
+    const endMonth = format(actualWeekEnd, 'MMM');
+    if (startMonth === endMonth) {
+        return `${format(viewedWeekStart, 'MMM d')} – ${format(actualWeekEnd, 'd, yyyy')}`;
+    } else {
+        return `${format(viewedWeekStart, 'MMM d')} – ${format(actualWeekEnd, 'MMM d, yyyy')}`;
+    }
+  }, [viewedWeekStart, actualWeekEnd]);
 
   // --- Render Logic ---
   return (
@@ -166,7 +181,8 @@ function CalendarView({ categoryFilterIds, categoryFilterKey}) {
           {!loading && (
             <CalendarGrid
               events={events}
-              defaultDate={defaultDate}
+              date={viewedWeekStart}
+              onNavigate={handleNavigate}
               onBook={handleBookClick}
               onUnsubscribe={handleUnsubscribeClick}
             />
