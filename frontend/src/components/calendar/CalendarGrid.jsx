@@ -34,46 +34,45 @@ const CalendarGrid = ({ events, date, onNavigate, onBook, onUnsubscribe }) => {
       boxShadow: 'none',
     };
     return {
-        className: className,
-        style: style,
+      className: className,
+      style: style,
     };
   }, []);
 
   const components = useMemo(() => ({
-      toolbar: () => null,
-      event: (props) => (
-          <CalendarEvent
-              {...props}
-              onBook={onBook}
-              onUnsubscribe={onUnsubscribe}
-          />
-      ),
-  }), [onBook, onUnsubscribe]); // Recreate if handlers change
+    toolbar: () => null,
+    event: (props) => (
+      <CalendarEvent
+        {...props}
+        onBook={onBook}
+        onUnsubscribe={onUnsubscribe}
+      />
+    ),
+  }), [onBook, onUnsubscribe]);
 
-  // Memoized formats object
   const formats = useMemo(() => ({
-      dayFormat: (date, culture, localizer) => localizer.format(date, 'EEE d', culture),
-      timeGutterFormat: (date, culture, localizer) => localizer.format(date, 'ha', culture),
+    dayFormat: (date, culture, localizer) => localizer.format(date, 'EEE d', culture),
+    timeGutterFormat: (date, culture, localizer) => localizer.format(date, 'ha', culture),
   }), []);
 
   return (
-      <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: '100%' }}
-          views={[Views.WEEK]}
-          defaultView={Views.WEEK}
-          date={date}
-          components={components}
-          // Prevent internal navigation handling as parent's toolbar does it
-          onNavigate={onNavigate}
-          // Click/Select is handled inside CalendarEvent now
-          eventPropGetter={eventStyleGetter}
-          culture='en-US'
-          formats={formats}
-      />
+    <Calendar
+      localizer={localizer}
+      events={events}
+      startAccessor="start"
+      endAccessor="end"
+      style={{ height: '100%' }}
+      views={[Views.WEEK]}
+      defaultView={Views.WEEK}
+      date={date}
+      components={components}
+      // Prevent internal navigation handling as parent's toolbar does it
+      onNavigate={onNavigate}
+      // Click/Select is handled inside CalendarEvent now
+      eventPropGetter={eventStyleGetter}
+      culture='en-US'
+      formats={formats}
+    />
   );
 };
 

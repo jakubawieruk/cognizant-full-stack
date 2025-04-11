@@ -1,7 +1,6 @@
 # Event Booking Application
 
 ## Objective
-
 Implement a full-stack web application that allows authenticated users to view and book pre-defined event time slots available in a weekly calendar view. The displayed slots are filtered based on the user's saved category preferences.
 
 ## Technologies Used
@@ -13,6 +12,7 @@ Implement a full-stack web application that allows authenticated users to view a
     *   dj-rest-auth (for Token Authentication, Registration)
     *   django-allauth (dependency for dj-rest-auth registration)
     *   SQLite (for development database)
+
 *   **Frontend:**
     *   React (with Vite)
     *   JavaScript
@@ -24,6 +24,7 @@ Implement a full-stack web application that allows authenticated users to view a
     *   Vitest (for testing)
     *   React Testing Library (for testing)
     *   MSW (Mock Service Worker for API mocking in tests)
+
 *   **Development:**
     *   Node.js & npm
     *   Python Virtual Environment (`venv`)
@@ -164,11 +165,7 @@ You need to run both the backend and frontend servers concurrently in separate t
     ```bash
     npm test
     ```
-3.  To run with UI (optional):
-    ```bash
-    npm run test:ui
-    ```
-4.  To view coverage:
+3.  To view coverage:
     ```bash
     npm run coverage
     ```
@@ -205,3 +202,56 @@ You need to run both the backend and frontend servers concurrently in separate t
     *   Click the "Sign Out" button in the header.
     *   Verify you are redirected back to the login page.
     *   Try accessing the root URL (`/`) directly; you should be redirected to login again.
+
+
+## Deployment / Build Process
+
+### Prerequisites
+
+*   A deployment environment (e.g., Linux server).
+*   Python, pip, Node.js, npm/yarn installed.
+*   A production database configured
+*   An application server 
+
+### Steps
+1.  **Build React Frontend:**
+    *   Navigate to the `frontend` directory:
+        ```bash
+        cd frontend
+        ```
+    *   Install dependencies:
+        ```bash
+        npm install
+        ```
+    *   Run the build command. This creates optimized files in `frontend/dist`.
+        ```bash
+        npm run build 
+        ```
+
+2.  **Configure Django for Production with Whitenoise:**
+    *   Navigate to the `backend` directory.
+    *   **Install Dependencies:** Ensure `whitenoise` and `gunicorn` (and your production database driver like `psycopg2-binary`) are installed and added to your `requirements.txt`.
+        ```bash
+        pip install whitenoise gunicorn psycopg2-binary
+        pip freeze > requirements.txt 
+        ```
+    *   **`settings.py` Modifications:**
+        *   Set `DEBUG = False`.
+        *   Configure `ALLOWED_HOSTS = ['your_domain.com', '.herokuapp.com', 'your_app_name.onrender.com', 'your_server_ip']`. Update with your actual production host(s).
+        *   Set a strong, secret `SECRET_KEY` (use environment variables).
+        *   Configure your production `DATABASES` setting.
+       
+
+3.  **Collect Static Files:**
+    *   From the `backend` directory (with virtual environment active), run:
+        ```bash
+        python manage.py collectstatic --noinput
+        ```
+    *   This copies all necessary static files (Django admin, React build output) into the `backend/staticfiles` directory.
+
+4.  **Configure Application Server (Gunicorn):**
+    *   **Manual Start:** If running manually or configuring `systemd`, the command is similar (run from the `backend` directory):
+        ```bash
+        gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
+        # Replace $PORT with the port assigned by your environment, often 8000 for local tests
+        ```

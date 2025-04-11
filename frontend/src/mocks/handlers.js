@@ -1,22 +1,45 @@
 import { http, HttpResponse } from 'msw'
 
-const API_BASE_URL = 'http://localhost:8000/api'; // Or your actual base URL if not proxying
-
+const API_BASE_URL = 'http://localhost:8000/api';
 // Define mock data
 const mockCategories = [
-    { id: 1, name: 'Mock Cat 1' },
-    { id: 2, name: 'Mock Cat 2' },
+  { id: 1, name: 'Mock Cat 1' },
+  { id: 2, name: 'Mock Cat 2' },
 ];
 const mockUserProfile = {
-    user: { id: 1, username: 'mockuser' },
-    interested_categories: [{ id: 1, name: 'Mock Cat 1' }],
+  user: { id: 1, username: 'mockuser' },
+  interested_categories: [{ id: 1, name: 'Mock Cat 1' }],
 };
 
 export const handlers = [
+  http.options(`${API_BASE_URL}/categories/`, () => {
+    console.log('MSW: Handling OPTIONS /api/categories/');
+    return new HttpResponse(null, {
+      status: 204, 
+      headers: {
+        'Access-Control-Allow-Origin': '*', 
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+      }
+    });
+  }),
+  
   // Mock fetching categories
   http.get(`${API_BASE_URL}/categories/`, () => {
     console.log('MSW: Intercepting GET /api/categories/');
     return HttpResponse.json(mockCategories)
+  }),
+
+  http.options(`${API_BASE_URL}/user/preferences/`, () => {
+    console.log('MSW: Handling OPTIONS /api/user/preferences/');
+    return new HttpResponse(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
+        'Access-Control-Allow-Headers': '*',
+      }
+    });
   }),
 
   // Mock fetching user profile
@@ -34,9 +57,8 @@ export const handlers = [
   // Mock fetching timeslots (return empty array initially)
   http.get(`${API_BASE_URL}/timeslots/`, ({ request }) => {
     const url = new URL(request.url);
-    const categoryIds = url.searchParams.getAll('category_id'); // or 'category_id[]'
+    const categoryIds = url.searchParams.getAll('category_id[]');
     console.log('MSW: Mocking GET /timeslots/ with categories:', categoryIds);
-    // Add logic here to return specific mock slots based on categoryIds if needed
     return HttpResponse.json([]) // Return empty array for simplicity
   }),
 ]

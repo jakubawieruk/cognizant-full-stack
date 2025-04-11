@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router';
 import { CssBaseline, Container } from '@mui/material';
 
-// Import views
 import LoginView from './views/LoginView';
 import RegisterView from './views/RegisterView';
 

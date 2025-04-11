@@ -22,8 +22,8 @@ function UserPreferencesCard({ onSelectionChange, onSaveSuccess }) {
     setInitialSelectedIds(new Set());
     try {
       const results = await Promise.allSettled([
-          fetchCategories(),
-          fetchUserProfile()
+        fetchCategories(),
+        fetchUserProfile()
       ]);
 
       console.log("API Fetch Results:", results);
@@ -33,17 +33,17 @@ function UserPreferencesCard({ onSelectionChange, onSaveSuccess }) {
 
       // Process Categories Result
       if (categoriesResult.status === 'fulfilled' && categoriesResult.value?.data) {
-          const categoryData = categoriesResult.value.data;
-          console.log("[TEST DEBUG] Categories Response Data:", categoryData);
-          if (Array.isArray(categoryData)) {
-              setCategories(categoryData);
-          } else {
-              console.warn("Received non-array data for categories:", categoryData);
-              setError(prev => prev ? prev + " / Invalid category data" : "Invalid category data");
-          }
+        const categoryData = categoriesResult.value.data;
+        console.log("[TEST DEBUG] Categories Response Data:", categoryData);
+        if (Array.isArray(categoryData)) {
+          setCategories(categoryData);
+        } else {
+          console.warn("Received non-array data for categories:", categoryData);
+          setError(prev => prev ? prev + " / Invalid category data" : "Invalid category data");
+        }
       } else {
-          console.error("Failed to fetch categories:", categoriesResult.reason || "Unknown error");
-          setError(prev => prev ? prev + " / Failed to load categories" : "Failed to load categories");
+        console.error("Failed to fetch categories:", categoriesResult.reason || "Unknown error");
+        setError(prev => prev ? prev + " / Failed to load categories" : "Failed to load categories");
       }
 
       // Process Profile Result (and inform parent of initial selection)
@@ -69,7 +69,7 @@ function UserPreferencesCard({ onSelectionChange, onSaveSuccess }) {
       }
 
   } catch (err) {
-    // Catch potential errors *outside* Promise.allSettled (less likely now)
+    // Catch potential errors *outside* Promise.allSettled
     console.error("Unexpected error in loadData:", err);
     setError("An unexpected error occurred while loading data.");
     setCategories([]); // Reset on unexpected error
@@ -78,7 +78,6 @@ function UserPreferencesCard({ onSelectionChange, onSaveSuccess }) {
   } finally {
     setLoading(false);
   }
-// Ensure dependencies are correct
 }, [onSelectionChange]);
 
   useEffect(() => { loadData(); }, [loadData]);

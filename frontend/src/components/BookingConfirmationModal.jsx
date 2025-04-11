@@ -1,4 +1,6 @@
-import { Dialog as MuiDialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, CircularProgress, Alert } from '@mui/material';
+import { 
+  Dialog as MuiDialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, CircularProgress, Alert
+} from '@mui/material';
 import format from 'date-fns/format';
 
 function BookingConfirmationModal({ open, slot, loading, error, onClose, onConfirm }) {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,22 +25,22 @@ function AppHeader() {
             width: 'auto',
             display: 'block',
           }}
-          alt="Event Booker Logo" // Descriptive alt text
+          alt="Event Booker Logo"
           src={logoImage}
         />
       </Box>
         {/* Conditionally render user info and logout button */}
         {user ? (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="body1" sx={{ mr: 2 }}> {/* Margin right */}
-              Welcome, {user.username || 'User'}! {/* Display username, fallback to 'User' */}
+            <Typography variant="body1" sx={{ mr: 2 }}>
+              Welcome, {user.username || 'User'}!
             </Typography>
             <Button color="inherit" variant="outlined" onClick={handleLogout}>
               Sign Out
             </Button>
           </Box>
         ) : (
-          // Optionally show something else if user isn't loaded (though this header likely only shows when logged in)
+          // If user is not logged in, show loading text
           <Typography variant="body1">Loading...</Typography>
         )}
       </Toolbar>

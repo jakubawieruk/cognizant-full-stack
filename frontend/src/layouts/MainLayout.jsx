@@ -13,20 +13,20 @@ function MainLayout() {
   const loadInitialPreferences = useCallback(async () => {
     setIsLoadingPrefs(true);
     try {
-        const profileResponse = await fetchUserProfile();
-        const initialIds = profileResponse.data?.interested_categories?.map(cat => cat.id) || [];
-        console.log("MainLayout: Loaded initial preference IDs:", initialIds);
-        setActiveCategoryFilters(initialIds);
+      const profileResponse = await fetchUserProfile();
+      const initialIds = profileResponse.data?.interested_categories?.map(cat => cat.id) || [];
+      console.log("MainLayout: Loaded initial preference IDs:", initialIds);
+      setActiveCategoryFilters(initialIds);
     } catch (error) {
-        console.error("MainLayout: Failed to load initial preferences", error);
-        setActiveCategoryFilters([]); // Default to empty if loading fails
+      console.error("MainLayout: Failed to load initial preferences", error);
+      setActiveCategoryFilters([]); // Default to empty if loading fails
     } finally {
-        setIsLoadingPrefs(false);
+      setIsLoadingPrefs(false);
     }
   }, []);
 
   useEffect(() => {
-      loadInitialPreferences();
+    loadInitialPreferences();
   }, [loadInitialPreferences]);
 
   // Handler called by UserPreferencesCard when user CHECKS/UNCHECKS boxes
