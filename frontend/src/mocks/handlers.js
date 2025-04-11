@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 
-const API_BASE_URL = '/api'; // Or your actual base URL if not proxying
+const API_BASE_URL = 'http://localhost:8000/api'; // Or your actual base URL if not proxying
 
 // Define mock data
 const mockCategories = [
@@ -15,32 +15,28 @@ const mockUserProfile = {
 export const handlers = [
   // Mock fetching categories
   http.get(`${API_BASE_URL}/categories/`, () => {
+    console.log('MSW: Intercepting GET /api/categories/');
     return HttpResponse.json(mockCategories)
   }),
 
   // Mock fetching user profile
   http.get(`${API_BASE_URL}/user/preferences/`, () => {
+    console.log('MSW: Intercepting GET /api/user/preferences/');
     return HttpResponse.json(mockUserProfile)
   }),
 
-  // Mock updating preferences (just return success)
+  // Mock updating preferences
   http.put(`${API_BASE_URL}/user/preferences/`, async () => {
-     // You could optionally inspect request.json() here
-     console.log('MSW: Mocking PUT /user/preferences/');
-     return HttpResponse.json({ success: true }, { status: 200 })
+    console.log('MSW: Mocking PUT /user/preferences/');
+    return HttpResponse.json({ success: true }, { status: 200 })
   }),
 
   // Mock fetching timeslots (return empty array initially)
-   http.get(`${API_BASE_URL}/timeslots/`, ({ request }) => {
-        const url = new URL(request.url);
-        const categoryIds = url.searchParams.getAll('category_id'); // or 'category_id[]'
-        console.log('MSW: Mocking GET /timeslots/ with categories:', categoryIds);
-        // Add logic here to return specific mock slots based on categoryIds if needed
-        return HttpResponse.json([]) // Return empty array for simplicity
-   }),
-
-   // Add mocks for login, registration, book, unbook as needed...
-   // http.post(`${API_BASE_URL}/auth/login/`, () => { ... })
-   // http.post(`${API_BASE_URL}/timeslots/:slotId/book/`, () => { ... })
-
+  http.get(`${API_BASE_URL}/timeslots/`, ({ request }) => {
+    const url = new URL(request.url);
+    const categoryIds = url.searchParams.getAll('category_id'); // or 'category_id[]'
+    console.log('MSW: Mocking GET /timeslots/ with categories:', categoryIds);
+    // Add logic here to return specific mock slots based on categoryIds if needed
+    return HttpResponse.json([]) // Return empty array for simplicity
+  }),
 ]

@@ -1,21 +1,20 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { http, HttpResponse } from 'msw'; // For overriding mocks per test
+import { http, HttpResponse } from 'msw'; 
 
 import UserPreferencesCard from './UserPreferencesCard';
-import { server } from '../mocks/server'; // Import mock server for handler overrides
+import { server } from '../mocks/server';
 
-// Mock the API service module if not using MSW for everything,
-// but MSW is generally preferred.
-// vi.mock('../api/apiService');
+vi.mock('../api/apiService');
 
 describe('UserPreferencesCard', () => {
   const setup = () => {
     const user = userEvent.setup();
-    // Mock callbacks passed from parent
+    
     const mockOnSelectionChange = vi.fn();
     const mockOnSaveSuccess = vi.fn();
+    
     render(
         <UserPreferencesCard
             onSelectionChange={mockOnSelectionChange}
@@ -69,12 +68,16 @@ describe('UserPreferencesCard', () => {
  it('calls save preferences API when save button is clicked', async () => {
     const { user, mockOnSaveSuccess } = setup();
 
+    expect(await screen.findByText('Mock Cat 1')).toBeInTheDocument();
+    console.log("DOM after waiting for initial load:");
+    screen.debug();
+
     // Wait for initial load
     const checkbox2 = await screen.findByRole('checkbox', { name: 'Mock Cat 2' });
     const saveButton = screen.getByRole('button', { name: /save changes/i });
 
     // Initially button might be disabled if no changes
-    // expect(saveButton).toBeDisabled();
+    expect(saveButton).toBeDisabled();
 
     // Click a checkbox to enable save
     await user.click(checkbox2);
@@ -83,7 +86,7 @@ describe('UserPreferencesCard', () => {
     // Spy on the specific API endpoint via MSW
     let updateCalled = false;
     server.use(
-        http.put('/api/user/preferences/', async ({request}) => {
+        http.put('/user/preferences/', async ({request}) => {
             updateCalled = true;
             const body = await request.json();
             expect(body.interested_category_ids).toEqual([1, 2]); // Expect sorted IDs perhaps

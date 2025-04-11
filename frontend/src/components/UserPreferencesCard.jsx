@@ -17,30 +17,69 @@ function UserPreferencesCard({ onSelectionChange, onSaveSuccess }) {
   const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
+    setCategories([]);
+    setSelectedCategoryIds(new Set());
+    setInitialSelectedIds(new Set());
     try {
-      const [categoriesResponse, profileResponse] = await Promise.all([
-        fetchCategories(),
-        fetchUserProfile()
+      const results = await Promise.allSettled([
+          fetchCategories(),
+          fetchUserProfile()
       ]);
 
-      setCategories(categoriesResponse.data || []);
+      console.log("API Fetch Results:", results);
 
-      const userSelectedIds = new Set(profileResponse.data?.interested_categories?.map(cat => cat.id) || []);
-      setSelectedCategoryIds(userSelectedIds);
-      setInitialSelectedIds(userSelectedIds);
+      const categoriesResult = results[0];
+      const profileResult = results[1];
 
-       // --- Inform parent of initial selection ---
-       if (onSelectionChange) {
-        onSelectionChange(userSelectedIds);
-    }
+      // Process Categories Result
+      if (categoriesResult.status === 'fulfilled' && categoriesResult.value?.data) {
+          const categoryData = categoriesResult.value.data;
+          console.log("[TEST DEBUG] Categories Response Data:", categoryData);
+          if (Array.isArray(categoryData)) {
+              setCategories(categoryData);
+          } else {
+              console.warn("Received non-array data for categories:", categoryData);
+              setError(prev => prev ? prev + " / Invalid category data" : "Invalid category data");
+          }
+      } else {
+          console.error("Failed to fetch categories:", categoriesResult.reason || "Unknown error");
+          setError(prev => prev ? prev + " / Failed to load categories" : "Failed to load categories");
+      }
 
-    } catch (err) {
-      console.error("Failed to load preferences data:", err);
-      setError("Failed to load categories or user preferences.");
-    } finally {
-      setLoading(false);
-    }
-  }, [onSelectionChange]);
+      // Process Profile Result (and inform parent of initial selection)
+      let initialSelection = new Set(); // Use appropriate type if using TS
+      if (profileResult.status === 'fulfilled' && profileResult.value?.data) {
+        const profileData = profileResult.value.data;
+        console.log("[TEST DEBUG] Profile Response Data:", profileData);
+        const userSelectedIds = new Set(profileData?.interested_categories?.map(cat => cat.id) || []);
+        setSelectedCategoryIds(userSelectedIds);
+        setInitialSelectedIds(userSelectedIds);
+        initialSelection = userSelectedIds; // Store for callback
+      } else {
+        console.error("Failed to fetch user profile:", profileResult.reason || "Unknown error");
+        setError(prev => prev ? prev + " / Failed to load user preferences" : "Failed to load user preferences");
+        // Keep selections empty if profile fails
+        setSelectedCategoryIds(new Set());
+        setInitialSelectedIds(new Set());
+      }
+
+      // Inform parent of initial selection (even if empty or partially loaded)
+      if (onSelectionChange) {
+        onSelectionChange(initialSelection);
+      }
+
+  } catch (err) {
+    // Catch potential errors *outside* Promise.allSettled (less likely now)
+    console.error("Unexpected error in loadData:", err);
+    setError("An unexpected error occurred while loading data.");
+    setCategories([]); // Reset on unexpected error
+    setSelectedCategoryIds(new Set());
+    setInitialSelectedIds(new Set());
+  } finally {
+    setLoading(false);
+  }
+// Ensure dependencies are correct
+}, [onSelectionChange]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
